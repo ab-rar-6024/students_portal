@@ -1,0 +1,60 @@
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'phpmailer/PHPMailer.php';
+require 'phpmailer/SMTP.php';
+require 'phpmailer/Exception.php';
+
+if (isset($_POST['send_mail'])) {
+    $to = $_POST['to'];
+    $cc = $_POST['cc'];
+    $subject = $_POST['subject'];
+    $body = $_POST['body'];
+    $attachmentPath = '';
+
+    // Handle file upload
+    if (!empty($_FILES['attachment']['name'])) {
+        $attachmentName = $_FILES['attachment']['name'];
+        $attachmentPath = "uploads/" . basename($attachmentName);
+        move_uploaded_file($_FILES['attachment']['tmp_name'], $attachmentPath);
+    }
+
+    // Create PHPMailer object
+    $mail = new PHPMailer(true);
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com'; // use your SMTP
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'your_email@gmail.com'; // your email
+        $mail->Password   = 'your_email_password';  // app password
+        $mail->SMTPSecure = 'tls';
+        $mail->Port       = 587;
+
+        $mail->setFrom('your_email@gmail.com', 'Admin');
+
+        if ($to === 'all') {
+            $result = $conn->query("SELECT email FROM students");
+            while ($row = $result->fetch_assoc()) {
+                $mail->addAddress($row['email']);
+            }
+        } else {
+            $mail->addAddress($to);
+        }
+
+        if (!empty($cc)) $mail->addCC($cc);
+
+        if ($attachmentPath) {
+            $mail->addAttachment($attachmentPath);
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = nl2br($body);
+
+        $mail->send();
+        echo "<script>alert('Mail sent successfully!'); window.location='admin.php';</script>";
+    } catch (Exception $e) {
+        echo "<script>alert('Mail Error: {$mail->ErrorInfo}');</script>";
+    }
+}
