@@ -66,5 +66,4 @@ Font Awesome (icons)
 
 ---
 
-Let me know if you want this generated into a file (like `README.md`) or want to add instructions for deployment or GitHub hosting.
 
